@@ -475,6 +475,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	/** 初始化一些策略 by qinjiaw */
 	protected void initStrategies(ApplicationContext context) {
 		initMultipartResolver(context);
 		initLocaleResolver(context);
@@ -956,6 +957,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Actually invoke the handler.
+				/* mvc参数绑定入口, 获取request的参数值 by qinjiaw */
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1150,6 +1152,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param handler the handler object to find an adapter for
 	 * @throws ServletException if no HandlerAdapter can be found for the handler. This is a fatal error.
 	 */
+	/* 获取参数解析适配器[Adapter]工具 by qinjiaw
+	*  以实现[HandlerAdapter] 接口中的 AnnotationMethodHandlerAdapter为例子
+	*  */
 	protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
 		for (HandlerAdapter ha : this.handlerAdapters) {
 			if (logger.isTraceEnabled()) {

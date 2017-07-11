@@ -143,23 +143,32 @@ public class HandlerMethodInvoker {
 		Method handlerMethodToInvoke = BridgeMethodResolver.findBridgedMethod(handlerMethod);
 		try {
 			boolean debug = logger.isDebugEnabled();
+			// 遍历 SessionAttribute 中所带的参数 name 和 value 封装进 ModelMap 中
 			for (String attrName : this.methodResolver.getActualSessionAttributeNames()) {
 				Object attrValue = this.sessionAttributeStore.retrieveAttribute(webRequest, attrName);
 				if (attrValue != null) {
 					implicitModel.addAttribute(attrName, attrValue);
 				}
 			}
+
+			// 遍历 ModelAttribute 中的方法
 			for (Method attributeMethod : this.methodResolver.getModelAttributeMethods()) {
+				// 实例化 attributeMethod 的方法执行者
 				Method attributeMethodToInvoke = BridgeMethodResolver.findBridgedMethod(attributeMethod);
+				// 获取 attributeMethod 的执行参数, 从webRequest 和 model 中获取
 				Object[] args = resolveHandlerArguments(attributeMethodToInvoke, handler, webRequest, implicitModel);
 				if (debug) {
 					logger.debug("Invoking model attribute method: " + attributeMethodToInvoke);
 				}
+				// 获取 ModelAttribute 注解名称
 				String attrName = AnnotationUtils.findAnnotation(attributeMethod, ModelAttribute.class).value();
 				if (!"".equals(attrName) && implicitModel.containsAttribute(attrName)) {
 					continue;
 				}
+				// 类反射的工具类, 检测在已加载JVM中在安全层面上是否可调用
 				ReflectionUtils.makeAccessible(attributeMethodToInvoke);
+
+				// modelAttribute 的方法调用
 				Object attrValue = attributeMethodToInvoke.invoke(handler, args);
 				if ("".equals(attrName)) {
 					Class<?> resolvedType = GenericTypeResolver.resolveReturnType(attributeMethodToInvoke, handler.getClass());
