@@ -178,6 +178,7 @@ public class HandlerMethodInvoker {
 					implicitModel.addAttribute(attrName, attrValue);
 				}
 			}
+			// 此处进行参数的校验/绑定/转换
 			Object[] args = resolveHandlerArguments(handlerMethodToInvoke, handler, webRequest, implicitModel);
 			if (debug) {
 				logger.debug("Invoking request handler method: " + handlerMethodToInvoke);
@@ -246,6 +247,7 @@ public class HandlerMethodInvoker {
 	private Object[] resolveHandlerArguments(Method handlerMethod, Object handler,
 			NativeWebRequest webRequest, ExtendedModelMap implicitModel) throws Exception {
 
+		// 获取到所有参数的类型数组 数组length = 参数个数
 		Class<?>[] paramTypes = handlerMethod.getParameterTypes();
 		Object[] args = new Object[paramTypes.length];
 
@@ -264,13 +266,16 @@ public class HandlerMethodInvoker {
 			boolean validate = false;
 			Object[] validationHints = null;
 			int annotationsFound = 0;
+
+			// 遍历 controller 中的参数注解
 			Annotation[] paramAnns = methodParam.getParameterAnnotations();
 
 			for (Annotation paramAnn : paramAnns) {
 				if (RequestParam.class.isInstance(paramAnn)) {
 					RequestParam requestParam = (RequestParam) paramAnn;
-					paramName = requestParam.value();
-					required = requestParam.required();
+					paramName = requestParam.value();   // 参数名称
+					required = requestParam.required(); // 是否必须
+					// 参数是否有默认值, 如果为空取默认值
 					defaultValue = parseDefaultValueAttribute(requestParam.defaultValue());
 					annotationsFound++;
 				}
