@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.view.AbstractTemplateView;
 import org.springframework.web.util.NestedServletException;
@@ -50,6 +52,7 @@ import org.springframework.web.util.NestedServletException;
  */
 public class GroovyMarkupView extends AbstractTemplateView {
 
+	@Nullable
 	private MarkupTemplateEngine engine;
 
 
@@ -99,6 +102,7 @@ public class GroovyMarkupView extends AbstractTemplateView {
 
 	@Override
 	public boolean checkResource(Locale locale) throws Exception {
+		Assert.state(this.engine != null, "No MarkupTemplateEngine set");
 		try {
 			this.engine.resolveTemplate(getUrl());
 		}
@@ -124,6 +128,7 @@ public class GroovyMarkupView extends AbstractTemplateView {
 	 * for the given view URL.
 	 */
 	protected Template getTemplate(String viewUrl) throws Exception {
+		Assert.state(this.engine != null, "No MarkupTemplateEngine set");
 		try {
 			return this.engine.createTemplateByPath(viewUrl);
 		}

@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -180,8 +180,7 @@ public abstract class AopProxyUtils {
 		if (proxy instanceof DecoratingProxy) {
 			nonUserIfcCount++;
 		}
-		Class<?>[] userInterfaces = new Class<?>[proxyInterfaces.length - nonUserIfcCount];
-		System.arraycopy(proxyInterfaces, 0, userInterfaces, 0, userInterfaces.length);
+		Class<?>[] userInterfaces = Arrays.copyOf(proxyInterfaces, proxyInterfaces.length - nonUserIfcCount);
 		Assert.notEmpty(userInterfaces, "JDK proxy must implement one or more interfaces");
 		return userInterfaces;
 	}
@@ -220,10 +219,13 @@ public abstract class AopProxyUtils {
 	 * @return a cloned argument array, or the original if no adaptation is needed
 	 * @since 4.2.3
 	 */
-	static Object[] adaptArgumentsIfNecessary(Method method, Object... arguments) {
-		if (method.isVarArgs() && !ObjectUtils.isEmpty(arguments)) {
-			Class<?>[] paramTypes = method.getParameterTypes();
-			if (paramTypes.length == arguments.length) {
+	static Object[] adaptArgumentsIfNecessary(Method method, @Nullable Object[] arguments) {
+		if (ObjectUtils.isEmpty(arguments)) {
+			return new Object[0];
+		}
+		if (method.isVarArgs()) {
+			if (method.getParameterCount() == arguments.length) {
+				Class<?>[] paramTypes = method.getParameterTypes();
 				int varargIndex = paramTypes.length - 1;
 				Class<?> varargType = paramTypes[varargIndex];
 				if (varargType.isArray()) {

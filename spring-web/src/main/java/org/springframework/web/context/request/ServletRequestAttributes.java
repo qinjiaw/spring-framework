@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -62,8 +63,10 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 
 	private final HttpServletRequest request;
 
+	@Nullable
 	private HttpServletResponse response;
 
+	@Nullable
 	private volatile HttpSession session;
 
 	private final Map<String, Object> sessionAttributesToUpdate = new ConcurrentHashMap<>(1);
@@ -186,8 +189,8 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 	public void removeAttribute(String name, int scope) {
 		if (scope == SCOPE_REQUEST) {
 			if (isRequestActive()) {
-				this.request.removeAttribute(name);
 				removeRequestDestructionCallback(name);
+				this.request.removeAttribute(name);
 			}
 		}
 		else {
@@ -195,9 +198,8 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 			if (session != null) {
 				this.sessionAttributesToUpdate.remove(name);
 				try {
-					session.removeAttribute(name);
-					// Remove any registered destruction callback as well.
 					session.removeAttribute(DESTRUCTION_CALLBACK_NAME_PREFIX + name);
+					session.removeAttribute(name);
 				}
 				catch (IllegalStateException ex) {
 					// Session invalidated - shouldn't usually happen.

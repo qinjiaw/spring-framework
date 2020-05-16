@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -40,16 +41,20 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractRoutingDataSource extends AbstractDataSource implements InitializingBean {
 
+	@Nullable
 	private Map<Object, Object> targetDataSources;
 
+	@Nullable
 	private Object defaultTargetDataSource;
 
 	private boolean lenientFallback = true;
 
 	private DataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
 
+	@Nullable
 	private Map<Object, DataSource> resolvedDataSources;
 
+	@Nullable
 	private DataSource resolvedDefaultDataSource;
 
 

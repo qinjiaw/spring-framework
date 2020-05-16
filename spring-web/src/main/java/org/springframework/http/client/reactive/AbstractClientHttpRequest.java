@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -57,7 +58,10 @@ public abstract class AbstractClientHttpRequest implements ClientHttpRequest {
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
 
-	private final List<Supplier<? extends Mono<Void>>> commitActions = new ArrayList<>(4);
+	private final List<Supplier<? extends Publisher<Void>>> commitActions = new ArrayList<>(4);
+
+	@Nullable
+	private HttpHeaders readOnlyHeaders;
 
 
 	public AbstractClientHttpRequest() {
@@ -73,10 +77,16 @@ public abstract class AbstractClientHttpRequest implements ClientHttpRequest {
 
 	@Override
 	public HttpHeaders getHeaders() {
-		if (State.COMMITTED.equals(this.state.get())) {
-			return HttpHeaders.readOnlyHttpHeaders(this.headers);
+		if (this.readOnlyHeaders != null) {
+			return this.readOnlyHeaders;
 		}
-		return this.headers;
+		else if (State.COMMITTED.equals(this.state.get())) {
+			this.readOnlyHeaders = HttpHeaders.readOnlyHttpHeaders(this.headers);
+			return this.readOnlyHeaders;
+		}
+		else {
+			return this.headers;
+		}
 	}
 
 	@Override
@@ -112,37 +122,37 @@ public abstract class AbstractClientHttpRequest implements ClientHttpRequest {
 	 * @param writeAction the action to write the request body (may be {@code null})
 	 * @return a completion publisher
 	 */
-	protected Mono<Void> doCommit(@Nullable Supplier<? extends Mono<Void>> writeAction) {
+	protected Mono<Void> doCommit(@Nullable Supplier<? extends Publisher<Void>> writeAction) {
 		if (!this.state.compareAndSet(State.NEW, State.COMMITTING)) {
 			return Mono.empty();
 		}
 
-		this.commitActions.add(() -> {
-			applyHeaders();
-			applyCookies();
-			this.state.set(State.COMMITTED);
-			return Mono.empty();
-		});
+		this.commitActions.add(() ->
+				Mono.fromRunnable(() -> {
+					applyHeaders();
+					applyCookies();
+					this.state.set(State.COMMITTED);
+				}));
 
 		if (writeAction != null) {
 			this.commitActions.add(writeAction);
 		}
 
-		List<? extends Mono<Void>> actions = this.commitActions.stream()
+		List<? extends Publisher<Void>> actions = this.commitActions.stream()
 				.map(Supplier::get).collect(Collectors.toList());
 
-		return Flux.concat(actions).next();
+		return Flux.concat(actions).then();
 	}
 
 
 	/**
-	 * Apply header changes from {@link #getHeaders()} to the underlying response.
+	 * Apply header changes from {@link #getHeaders()} to the underlying request.
 	 * This method is called once only.
 	 */
 	protected abstract void applyHeaders();
 
 	/**
-	 * Add cookies from {@link #getHeaders()} to the underlying response.
+	 * Add cookies from {@link #getHeaders()} to the underlying request.
 	 * This method is called once only.
 	 */
 	protected abstract void applyCookies();

@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
 package org.springframework.messaging.converter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +48,9 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final List<MimeType> supportedMimeTypes;
+	private final List<MimeType> supportedMimeTypes = new ArrayList<>(4);
 
+	@Nullable
 	private ContentTypeResolver contentTypeResolver = new DefaultContentTypeResolver();
 
 	private boolean strictContentTypeMatch = false;
@@ -57,21 +59,28 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 
 
 	/**
-	 * Construct an {@code AbstractMessageConverter} supporting a single MIME type.
+	 * Constructor with a single MIME type.
 	 * @param supportedMimeType the supported MIME type
 	 */
 	protected AbstractMessageConverter(MimeType supportedMimeType) {
-		Assert.notNull(supportedMimeType, "supportedMimeType is required");
-		this.supportedMimeTypes = Collections.<MimeType>singletonList(supportedMimeType);
+		this(Collections.singletonList(supportedMimeType));
 	}
 
 	/**
-	 * Construct an {@code AbstractMessageConverter} supporting multiple MIME types.
+	 * Constructor with one or more MIME types via vararg.
+	 * @param supportedMimeTypes the supported MIME types
+	 * @since 5.2.2
+	 */
+	protected AbstractMessageConverter(MimeType... supportedMimeTypes) {
+		this(Arrays.asList(supportedMimeTypes));
+	}
+
+	/**
+	 * Constructor with a Collection of MIME types.
 	 * @param supportedMimeTypes the supported MIME types
 	 */
 	protected AbstractMessageConverter(Collection<MimeType> supportedMimeTypes) {
-		Assert.notNull(supportedMimeTypes, "supportedMimeTypes must not be null");
-		this.supportedMimeTypes = new ArrayList<>(supportedMimeTypes);
+		this.supportedMimeTypes.addAll(supportedMimeTypes);
 	}
 
 
@@ -83,6 +92,14 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 	}
 
 	/**
+	 * Allows sub-classes to add more supported mime types.
+	 * @since 5.2.2
+	 */
+	protected void addSupportedMimeTypes(MimeType... supportedMimeTypes) {
+		this.supportedMimeTypes.addAll(Arrays.asList(supportedMimeTypes));
+	}
+
+	/**
 	 * Configure the {@link ContentTypeResolver} to use to resolve the content
 	 * type of an input message.
 	 * <p>Note that if no resolver is configured, then
@@ -91,13 +108,14 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 	 * ignore all messages.
 	 * <p>By default, a {@code DefaultContentTypeResolver} instance is used.
 	 */
-	public void setContentTypeResolver(ContentTypeResolver resolver) {
+	public void setContentTypeResolver(@Nullable ContentTypeResolver resolver) {
 		this.contentTypeResolver = resolver;
 	}
 
 	/**
 	 * Return the configured {@link ContentTypeResolver}.
 	 */
+	@Nullable
 	public ContentTypeResolver getContentTypeResolver() {
 		return this.contentTypeResolver;
 	}
@@ -137,7 +155,7 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 	 */
 	public void setSerializedPayloadClass(Class<?> payloadClass) {
 		Assert.isTrue(byte[].class == payloadClass || String.class == payloadClass,
-				"Payload class must be byte[] or String: " + payloadClass);
+				() -> "Payload class must be byte[] or String: " + payloadClass);
 		this.serializedPayloadClass = payloadClass;
 	}
 
@@ -165,11 +183,13 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 	}
 
 	@Override
+	@Nullable
 	public final Object fromMessage(Message<?> message, Class<?> targetClass) {
 		return fromMessage(message, targetClass, null);
 	}
 
 	@Override
+	@Nullable
 	public final Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
 		if (!canConvertFrom(message, targetClass)) {
 			return null;
@@ -182,11 +202,13 @@ public abstract class AbstractMessageConverter implements SmartMessageConverter 
 	}
 
 	@Override
+	@Nullable
 	public final Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		return toMessage(payload, headers, null);
 	}
 
 	@Override
+	@Nullable
 	public final Message<?> toMessage(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
 		if (!canConvertTo(payload, headers)) {
 			return null;
