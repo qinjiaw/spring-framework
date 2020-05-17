@@ -22,6 +22,8 @@ import org.springframework.core.testfixture.EnabledForTestGroups;
 import org.springframework.util.StopWatch;
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 
+import java.util.Objects;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.core.testfixture.TestGroup.PERFORMANCE;
@@ -61,7 +63,7 @@ class ServletRequestUtilsTests {
 
 	@Test
 	void testIntParameters() throws ServletRequestBindingException {
-		request.addParameter("param", new String[] {"1", "2", "3"});
+		request.addParameter("param", "1", "2", "3");
 
 		request.addParameter("param2", "1");
 		request.addParameter("param2", "2");
@@ -103,7 +105,7 @@ class ServletRequestUtilsTests {
 
 	@Test
 	void testLongParameters() throws ServletRequestBindingException {
-		request.setParameter("param", new String[] {"1", "2", "3"});
+		request.setParameter("param", "1", "2", "3");
 
 		request.setParameter("param2", "0");
 		request.setParameter("param2", "1");
@@ -116,7 +118,7 @@ class ServletRequestUtilsTests {
 		assertThatExceptionOfType(ServletRequestBindingException.class).isThrownBy(() ->
 				ServletRequestUtils.getRequiredLongParameters(request, "param2"));
 
-		request.setParameter("param2", new String[] {"1", "2"});
+		request.setParameter("param2", "1", "2");
 		values = ServletRequestUtils.getRequiredLongParameters(request, "param2");
 		assertThat(values).containsExactly(1, 2);
 
@@ -131,7 +133,7 @@ class ServletRequestUtilsTests {
 		request.addParameter("param2", "e");
 		request.addParameter("paramEmpty", "");
 
-		assertThat(ServletRequestUtils.getFloatParameter(request, "param1").equals(new Float(5.5f))).isTrue();
+		assertThat(Objects.equals(ServletRequestUtils.getFloatParameter(request, "param1"), 5.5f)).isTrue();
 		assertThat(ServletRequestUtils.getFloatParameter(request, "param1", 6.5f) == 5.5f).isTrue();
 		assertThat(ServletRequestUtils.getRequiredFloatParameter(request, "param1") == 5.5f).isTrue();
 
@@ -150,7 +152,7 @@ class ServletRequestUtilsTests {
 
 	@Test
 	void testFloatParameters() throws ServletRequestBindingException {
-		request.addParameter("param", new String[] {"1.5", "2.5", "3"});
+		request.addParameter("param", "1.5", "2.5", "3");
 
 		request.addParameter("param2", "1.5");
 		request.addParameter("param2", "2");
@@ -169,7 +171,7 @@ class ServletRequestUtilsTests {
 		request.addParameter("param2", "e");
 		request.addParameter("paramEmpty", "");
 
-		assertThat(ServletRequestUtils.getDoubleParameter(request, "param1").equals(new Double(5.5))).isTrue();
+		assertThat(Objects.equals(ServletRequestUtils.getDoubleParameter(request, "param1"), 5.5)).isTrue();
 		assertThat(ServletRequestUtils.getDoubleParameter(request, "param1", 6.5) == 5.5).isTrue();
 		assertThat(ServletRequestUtils.getRequiredDoubleParameter(request, "param1") == 5.5).isTrue();
 
@@ -188,7 +190,7 @@ class ServletRequestUtilsTests {
 
 	@Test
 	void testDoubleParameters() throws ServletRequestBindingException {
-		request.addParameter("param", new String[] {"1.5", "2.5", "3"});
+		request.addParameter("param", "1.5", "2.5", "3");
 
 		request.addParameter("param2", "1.5");
 		request.addParameter("param2", "2");
@@ -208,7 +210,7 @@ class ServletRequestUtilsTests {
 		request.addParameter("param5", "1");
 		request.addParameter("paramEmpty", "");
 
-		assertThat(ServletRequestUtils.getBooleanParameter(request, "param1").equals(Boolean.TRUE)).isTrue();
+		assertThat(Objects.equals(ServletRequestUtils.getBooleanParameter(request, "param1"), Boolean.TRUE)).isTrue();
 		assertThat(ServletRequestUtils.getBooleanParameter(request, "param1", false)).isTrue();
 		assertThat(ServletRequestUtils.getRequiredBooleanParameter(request, "param1")).isTrue();
 
@@ -230,7 +232,7 @@ class ServletRequestUtilsTests {
 
 	@Test
 	void testBooleanParameters() throws ServletRequestBindingException {
-		request.addParameter("param", new String[] {"true", "yes", "off", "1", "bogus"});
+		request.addParameter("param", "true", "yes", "off", "1", "bogus");
 
 		request.addParameter("param2", "false");
 		request.addParameter("param2", "true");
