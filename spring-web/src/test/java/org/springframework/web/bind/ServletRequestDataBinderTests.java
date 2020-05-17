@@ -249,13 +249,13 @@ public class ServletRequestDataBinderTests {
 		m.put("forname", "Tony");
 		m.put("surname", "Blair");
 		m.put("age", "50");
-		for (int i = 0; i < ps.length; i++) {
-			Object val = m.get(ps[i].getName());
+		for (PropertyValue p : ps) {
+			Object val = m.get(p.getName());
 			assertThat(val != null).as("Can't have unexpected value").isTrue();
 			boolean condition = val instanceof String;
 			assertThat(condition).as("Val i string").isTrue();
-			assertThat(val.equals(ps[i].getValue())).as("val matches expected").isTrue();
-			m.remove(ps[i].getName());
+			assertThat(val.equals(p.getValue())).as("val matches expected").isTrue();
+			m.remove(p.getName());
 		}
 		assertThat(m.size() == 0).as("Map size is 0").isTrue();
 	}
